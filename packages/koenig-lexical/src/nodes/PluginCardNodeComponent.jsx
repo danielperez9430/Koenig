@@ -84,8 +84,10 @@ export const PluginCardNodeComponent = ({html: initialHtml, cardName, nodeKey, p
                     if (found.css) {
                         setPluginCss(found.css);
                     }
-                    // Sync template, CSS and preprocess from plugin loader
-                    // so updates take effect without re-inserting the card
+                    // Sync template, CSS, preprocess and fields from plugin loader
+                    // so updates take effect without re-inserting the card.
+                    // Also makes the node self-contained — if the plugin is later
+                    // uninstalled, the node can still render and edit from stored data.
                     editor.update(() => {
                         const node = $getNodeByKey(nodeKey);
                         if (node) {
@@ -98,11 +100,31 @@ export const PluginCardNodeComponent = ({html: initialHtml, cardName, nodeKey, p
                             if (found.preprocess !== undefined) {
                                 node.preprocess = found.preprocess;
                             }
+                            if (found.fields !== undefined) {
+                                node.fields = JSON.stringify(found.fields);
+                            }
                         }
                     });
                 }
             }).catch((err) => {
-                console.warn('[PluginCard] Failed to fetch plugin cards:', err);
+                console.warn('[PluginCard] Failed to fetch plugin cards, using stored data:', err);
+                // Fallback: use data stored on the node (self-contained mode)
+                editor.getEditorState().read(() => {
+                    const node = $getNodeByKey(nodeKey);
+                    if (node && !cardDef) {
+                        const fallbackDef = {
+                            plugin: node.pluginName,
+                            name: node.cardName,
+                            label: node.cardName,
+                            template: node.template,
+                            css: node.css,
+                            preprocess: node.preprocess,
+                            fields: (() => { try { return JSON.parse(node.fields || '[]'); } catch { return []; } })()
+                        };
+                        setCardDef(fallbackDef);
+                        if (fallbackDef.css) setPluginCss(fallbackDef.css);
+                    }
+                });
             });
     }, [pluginName, cardName]);
 

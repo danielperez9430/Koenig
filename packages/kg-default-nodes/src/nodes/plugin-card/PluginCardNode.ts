@@ -9,7 +9,8 @@ const pluginCardProperties = [
     {name: 'payload', default: '{}'},
     {name: 'css', default: ''},
     {name: 'template', default: ''},
-    {name: 'preprocess', default: ''}
+    {name: 'preprocess', default: ''},
+    {name: 'fields', default: '[]'}
 ] as const satisfies readonly DecoratorNodeProperty[];
 
 export type PluginCardData = DecoratorNodeData<typeof pluginCardProperties, true>;
@@ -46,8 +47,8 @@ export class PluginCardNode extends generateDecoratorNode({
         serializedNode = {...serializedNode, payload};
 
         const data: Record<string, unknown> = {};
-        const propNames = ['html', 'pluginName', 'cardName', 'payload', 'css', 'template', 'preprocess'];
-        const defaults: Record<string, unknown> = {html: '', pluginName: '', cardName: '', payload: '{}', css: '', template: '', preprocess: ''};
+        const propNames = ['html', 'pluginName', 'cardName', 'payload', 'css', 'template', 'preprocess', 'fields'];
+        const defaults: Record<string, unknown> = {html: '', pluginName: '', cardName: '', payload: '{}', css: '', template: '', preprocess: '', fields: '[]'};
         propNames.forEach((name) => {
             data[name] = serializedNode[name] ?? defaults[name];
         });
